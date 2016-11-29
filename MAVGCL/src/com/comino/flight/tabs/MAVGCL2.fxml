@@ -8,6 +8,7 @@
 
 <?import com.comino.flight.tabs.xtanalysis.FlightXtAnalysisTab?>
 <?import com.comino.flight.tabs.xyanalysis.FlightXYAnalysisTab?>
+<?import com.comino.flight.tabs.spectrum.FlightSpectrumTab?>
 <?import com.comino.flight.tabs.inspector.MAVInspectorTab?>
 <?import com.comino.flight.tabs.parameter.MAVParameterTab?>
 <?import com.comino.flight.tabs.openmap.MAVOpenMapTab?>
@@ -47,6 +48,18 @@
 									xmlns:fx="http://javafx.com/fxml/1">
 									<children>
 										<FlightXYAnalysisTab fx:id="xyanalysistab"
+											AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="10.0"
+											AnchorPane.topAnchor="5.0" AnchorPane.bottomAnchor="2.0" />
+									</children>
+								</AnchorPane>
+							</content>
+						</Tab>
+						<Tab text="Spectrum">
+							<content>
+								<AnchorPane xmlns="http://javafx.com/javafx/8.0.51"
+									xmlns:fx="http://javafx.com/fxml/1">
+									<children>
+										<FlightSpectrumTab fx:id="spectrumtab"
 											AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="10.0"
 											AnchorPane.topAnchor="5.0" AnchorPane.bottomAnchor="2.0" />
 									</children>
