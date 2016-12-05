@@ -35,7 +35,7 @@ package com.comino.flight.tabs.spectrum;
 
 import com.comino.flight.FXMLLoadHelper;
 import com.comino.flight.widgets.charts.control.ChartControlWidget;
-import com.comino.flight.widgets.charts.line.LineChartWidget;
+import com.comino.flight.widgets.charts.spectrum.SpectrumChartWidget;
 import com.comino.mav.control.IMAVController;
 
 import javafx.fxml.FXML;
@@ -45,7 +45,7 @@ public class FlightSpectrumTab extends Pane {
 
 
 	@FXML
-	private LineChartWidget chart1;
+	private SpectrumChartWidget chart1;
 
 
 	public FlightSpectrumTab() {
@@ -64,7 +64,7 @@ public class FlightSpectrumTab extends Pane {
 
 	public void setup(ChartControlWidget recordControl,IMAVController control) {
 
-		chart1.prefHeightProperty().bind(heightProperty().divide(2).subtract(2));
+		chart1.prefHeightProperty().bind(heightProperty().subtract(2));
 
 		recordControl.addChart(chart1.setup(control,1));
 

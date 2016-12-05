@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Group?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Label?>
+
+<fx:root  minHeight="250.0" styleClass="widget" minWidth="600"
+	type="BorderPane" xmlns="http://javafx.com/javafx/8.0.51" xmlns:fx="http://javafx.com/fxml/1">
+	<center>
+		<BarChart fx:id="barchart" animated="false"
+			AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+			AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+			layoutX="24.0" layoutY="16.0"
+			legendSide="TOP" maxHeight="716.0" maxWidth="1400.0" minHeight="220.0"
+			>
+			<xAxis>
+				<CategoryAxis fx:id="xAxis" animated="false" side="BOTTOM" />
+			</xAxis>
+			<yAxis>
+				<NumberAxis fx:id="yAxis" animated="false" side="LEFT" />
+			</yAxis>
+		</BarChart>
+	</center>
+	<bottom>
+		<Pane prefHeight="35">
+		    <ChoiceBox fx:id="group" layoutX="30.0" prefHeight="19.0"
+				prefWidth="120.0" />
+			<ChoiceBox fx:id="cseries1" layoutX="175.0" prefHeight="19.0"
+				prefWidth="100.0" />
+			<Button fx:id="export" layoutX="630.0"  prefHeight="19.0" mnemonicParsing="false"
+				text="PNG export" />
+		</Pane>
+	</bottom>
+</fx:root>
