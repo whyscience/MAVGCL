@@ -41,6 +41,9 @@ import java.util.prefs.Preferences;
 
 import javax.imageio.ImageIO;
 
+import org.jtransforms.fft.FloatFFT_1D;
+import org.jtransforms.utils.CommonUtils;
+
 import com.comino.flight.FXMLLoadHelper;
 import com.comino.flight.model.AnalysisDataModel;
 import com.comino.flight.model.AnalysisDataModelMetaData;
@@ -88,6 +91,8 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import pl.edu.icm.jlargearrays.ConcurrencyUtils;
+import pl.edu.icm.jlargearrays.LargeArray;
 
 
 public class SpectrumChartWidget extends BorderPane implements IChartControl, IAnalysisModelServiceListener {
@@ -156,6 +161,9 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 	private boolean refreshRequest = false;
 	private boolean isRunning = false;
 
+	private final FloatFFT_1D fft;
+	private final FloatFFT_1D ifft;
+
 
 	public SpectrumChartWidget() {
 
@@ -171,6 +179,13 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 		dataService.registerListener(this);
 
+		this.fft = new FloatFFT_1D(128);
+		this.ifft = new FloatFFT_1D(128);
+		LargeArray.setMaxSizeOf32bitArray(1);
+		CommonUtils.setThreadsBeginN_1D_FFT_2Threads(1024);
+		CommonUtils.setThreadsBeginN_1D_FFT_4Threads(1024);
+		ConcurrencyUtils.setNumberOfThreads(10);
+
 	}
 
 
@@ -178,8 +193,8 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 	public void update(long now) {
 		if(!isRunning || isDisabled() || !isVisible() )
 			return;
-			Platform.runLater(() -> {
-				updateGraph(refreshRequest);
+		Platform.runLater(() -> {
+			updateGraph(refreshRequest);
 		});
 
 	}
@@ -194,17 +209,18 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 		xAxis.setLabel("Hz");
 		xAxis.setAnimated(false);
-		xAxis.setLowerBound(0.0);
-		xAxis.setUpperBound(100.0);
+		xAxis.setLowerBound(1.0);
+		xAxis.setUpperBound(50.0);
 
 
 		yAxis.setForceZeroInRange(false);
-		yAxis.setAutoRanging(true);
+		yAxis.setAutoRanging(false);
 		yAxis.setPrefWidth(40);
 		yAxis.setAnimated(false);
 
+		yAxis.setLowerBound(0.0);
+		yAxis.setUpperBound(100.0);
 
-		xAxis.setAutoRanging(true);
 
 
 		barchart.setAnimated(false);
@@ -423,8 +439,12 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 		}
 	}
 
+	float[] data = new float[256];
+
 	private  void updateGraph(boolean refresh) {
 		float dt_sec = 0; AnalysisDataModel m =null; float v1 ;
+
+
 
 		if(isDisabled()) {
 			return;
@@ -440,8 +460,8 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 			pool.invalidateAll();
 			series1.getData().clear();
 
-			for(int i=0;i<100;i++)
-			  series1.getData().add(new XYChart.Data<Number,Number>(i,0));
+			for(int i=0;i<50;i++)
+				series1.getData().add(new XYChart.Data<Number,Number>(i,-1));
 
 			current_x_pt  = current_x0_pt;
 			current_x1_pt = current_x0_pt + (int)(timeframe * 1000f / COLLECTOR_CYCLE);
@@ -457,16 +477,30 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 			while(current_x_pt<max_x ) {
 
-				m = dataService.getModelList().get(current_x_pt);
+
 				dt_sec = current_x_pt *  COLLECTOR_CYCLE / 1000f;
 
-				if(((current_x_pt * COLLECTOR_CYCLE) % resolution_ms) == 0 && current_x_pt > 0) {
+				if(current_x_pt > 256) {
 
 					if(type1.hash!=0)  {
-						v1 = m.getValue(type1);
-						if(!Float.isNaN(v1)) {
-							series1.getData().get(current_x_pt % 100).setYValue(Math.abs(v1));;
-						}
+						for(int i=0;i<256;i++)
+							data[i] = dataService.getModelList().get(current_x_pt-256+i).getValue(type1);
+                            fft.realForward(hanningWindow(data));
+
+                            for (int i = 0; i < data.length/2; i++) {
+                                data[2*i] = (float)Math.sqrt(Math.pow(data[2*i],2) + Math.pow(data[2*i+1],2));
+                                data[2*i+1] = 0f;
+                            }
+
+                            ifft.realInverse(data,true);
+                            for (int i = 1; i < data.length; i++)
+                                data[i] = data[i] *100f / data[0];
+                            data[0] = 1.0f;
+
+
+						for(int i=0;i<50;i++)
+							series1.getData().get(i).setYValue(data[i]);;
+
 
 					}
 				}
@@ -532,6 +566,89 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 		if(recent==null)
 			recent = new ArrayList<KeyFigureMetaData>();
 
+	}
+
+	private float[] hanningWindow(float[] recordedData) {
+
+	    // iterate until the last line of the data buffer
+	    for (int n = 1; n < recordedData.length; n++) {
+	        // reduce unnecessarily performed frequency part of each and every frequency
+	        recordedData[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n)
+	                / (recordedData.length - 1)));
+	    }
+	    // return modified buffer to the FFT function
+	    return recordedData;
+	}
+
+	public static Float[] Interpolate(Float[] a, String mode) {
+
+	    // Check that have at least the very first and very last values non-null
+	    if (!(a[0] != null && a[a.length-1] != null)) return null;
+
+	    ArrayList<Integer> non_null_idx = new ArrayList<Integer>();
+	    ArrayList<Integer> steps = new ArrayList<Integer>();
+
+	    int step_cnt = 0;
+	    for (int i=0; i<a.length; i++)
+	    {
+	        if (a[i] != null)
+	        {
+	            non_null_idx.add(i);
+	            if (step_cnt != 0) {
+	                steps.add(step_cnt);
+	                System.err.println("aDDed step >> " + step_cnt);
+	            }
+	            step_cnt = 0;
+	        }
+	        else
+	        {
+	            step_cnt++;
+	        }
+	    }
+
+	    Float f_start = null;
+	    Float f_end = null;
+	    Float f_step = null;
+	    Float f_mu = null;
+
+	    int i = 0;
+	    while (i < a.length - 1) // Don't do anything for the very last element (which should never be null)
+	    {
+	        if (a[i] != null && non_null_idx.size() > 1 && steps.size() > 0)
+	        {
+	            f_start = a[non_null_idx.get(0)];
+	            f_end = a[non_null_idx.get(1)];
+	            f_step = new Float(1.0) / new Float(steps.get(0) + 1);
+	            f_mu = f_step;
+	            non_null_idx.remove(0);
+	            steps.remove(0);
+	        }
+	        else if (a[i] == null)
+	        {
+	            if (mode.equalsIgnoreCase("cosine"))
+	                a[i] = CosineInterpolate(f_start, f_end, f_mu);
+	            else
+	                a[i] = LinearInterpolate(f_start, f_end, f_mu);
+	            f_mu += f_step;
+	        }
+	        i++;
+	    }
+
+	    return a;
+	}
+
+	public static Float CosineInterpolate(Float y1,Float y2,Float mu)
+	{
+	    double mu2;
+
+	    mu2 = (1.0f-Math.cos(mu*Math.PI))/2.0f;
+	    Float f_mu2 = new Float(mu2);
+	    return(y1*(1.0f-f_mu2)+y2*f_mu2);
+	}
+
+	public static Float LinearInterpolate(Float y1,Float y2,Float mu)
+	{
+	    return(y1*(1-mu)+y2*mu);
 	}
 
 }

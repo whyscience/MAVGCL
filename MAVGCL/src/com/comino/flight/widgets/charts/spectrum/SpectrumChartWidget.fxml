@@ -23,7 +23,9 @@
 				<NumberAxis fx:id="xAxis" animated="false" side="BOTTOM" />
 			</xAxis>
 			<yAxis>
-				<NumberAxis fx:id="yAxis" animated="false" side="LEFT" />
+				<NumberAxis fx:id="yAxis" animated="false" side="LEFT"
+				minorTickCount="5" tickLabelFill="#0f0580" tickLabelGap="5.0"
+					tickLength="10.0" />
 			</yAxis>
 		</LineChart>
 	</center>
