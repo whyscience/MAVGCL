@@ -99,10 +99,10 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 	private final static int REFRESH_STEP    = REFRESH_RATE / COLLECTOR_CYCLE;
 
 	@FXML
-	private BarChart<String, Number> barchart;
+	private LineChart<Number, Number> barchart;
 
 	@FXML
-	private CategoryAxis xAxis;
+	private NumberAxis xAxis;
 
 	@FXML
 	private NumberAxis yAxis;
@@ -119,7 +119,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 	private int id = 0;
 
-	private  XYChart.Series<String,Number> series1;
+	private  XYChart.Series<Number,Number> series1;
 
 	private IMAVController control;
 
@@ -166,7 +166,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 		barchart.setBackground(null);
 
-		series1 = new XYChart.Series<String,Number>();
+		series1 = new XYChart.Series<Number,Number>();
 		barchart.getData().add(series1);
 
 		dataService.registerListener(this);
@@ -194,12 +194,18 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 		xAxis.setLabel("Hz");
 		xAxis.setAnimated(false);
+		xAxis.setLowerBound(0.0);
+		xAxis.setUpperBound(100.0);
 
 
 		yAxis.setForceZeroInRange(false);
 		yAxis.setAutoRanging(true);
 		yAxis.setPrefWidth(40);
 		yAxis.setAnimated(false);
+
+
+		xAxis.setAutoRanging(true);
+
 
 		barchart.setAnimated(false);
 		barchart.setLegendVisible(true);
@@ -434,8 +440,8 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 			pool.invalidateAll();
 			series1.getData().clear();
 
-			for(int i=0;i<50;i++)
-			  series1.getData().add(new XYChart.Data<String,Number>(String.valueOf(i),0));
+			for(int i=0;i<100;i++)
+			  series1.getData().add(new XYChart.Data<Number,Number>(i,0));
 
 			current_x_pt  = current_x0_pt;
 			current_x1_pt = current_x0_pt + (int)(timeframe * 1000f / COLLECTOR_CYCLE);
@@ -459,7 +465,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 					if(type1.hash!=0)  {
 						v1 = m.getValue(type1);
 						if(!Float.isNaN(v1)) {
-							series1.getData().get(current_x_pt % 50).setYValue(Math.abs(v1));;
+							series1.getData().get(current_x_pt % 100).setYValue(Math.abs(v1));;
 						}
 
 					}
@@ -478,33 +484,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 		}
 	}
 
-	private void setDashboardData(DashBoardAnnotation d, KeyFigureMetaData kf) {
-		int count=0; float val=0;
-		float _min = Float.NaN; float _max = Float.NaN;
-		float _avg = 0; float mean = 0; float std=0;
 
-		if(kf.hash==0)
-			return;
-
-		d.setKeyFigure(kf);
-		for(int i = current_x0_pt; i < current_x1_pt && i< dataService.getModelList().size();i++) {
-			val = dataService.getModelList().get(i).getValue(kf);
-			if(val<_min || Float.isNaN(_min)) _min = val;
-			if(val>_max || Float.isNaN(_max)) _max = val;
-			_avg = _avg + val; count++;
-		}
-
-		d.setMinMax(_min, _max);
-		if(count>0) {
-			mean = _avg / count; std = 0;
-			for(int i = current_x0_pt; i < current_x1_pt && i< dataService.getModelList().size();i++) {
-				val = dataService.getModelList().get(i).getValue(kf);
-				std = std + (val - mean) * (val - mean);
-			}
-			std = (float)Math.sqrt(std / count);
-			d.setAvg(mean, std);
-		}
-	}
 
 
 

@@ -22,7 +22,7 @@
 			legendSide="TOP" maxHeight="358.0" maxWidth="1400.0" minHeight="220.0"
 			verticalZeroLineVisible="false">
 			<xAxis>
-				<MovingAxis animated="true" lowerBound="0"
+				<MovingAxis animated="false" lowerBound="0"
 					minorTickCount="5" tickLabelFill="#0f0580" tickLabelGap="5.0"
 					tickLength="10.0" upperBound="60.0" fx:id="xAxis" />
 			</xAxis>

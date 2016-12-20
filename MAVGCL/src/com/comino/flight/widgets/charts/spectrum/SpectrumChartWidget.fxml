@@ -12,19 +12,20 @@
 <fx:root  minHeight="250.0" styleClass="widget" minWidth="600"
 	type="BorderPane" xmlns="http://javafx.com/javafx/8.0.51" xmlns:fx="http://javafx.com/fxml/1">
 	<center>
-		<BarChart fx:id="barchart" animated="false"
+		<LineChart fx:id="barchart" animated="false"
 			AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
 			AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
 			layoutX="24.0" layoutY="16.0"
+			createSymbols="false"
 			legendSide="TOP" maxHeight="716.0" maxWidth="1400.0" minHeight="220.0"
 			>
 			<xAxis>
-				<CategoryAxis fx:id="xAxis" animated="false" side="BOTTOM" />
+				<NumberAxis fx:id="xAxis" animated="false" side="BOTTOM" />
 			</xAxis>
 			<yAxis>
 				<NumberAxis fx:id="yAxis" animated="false" side="LEFT" />
 			</yAxis>
-		</BarChart>
+		</LineChart>
 	</center>
 	<bottom>
 		<Pane prefHeight="35">
