@@ -207,10 +207,10 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 
 		xAxis.setAutoRanging(false);
 
-		xAxis.setLabel("Hz");
+		xAxis.setLabel("Freq.");
 		xAxis.setAnimated(false);
 		xAxis.setLowerBound(1.0);
-		xAxis.setUpperBound(50.0);
+		xAxis.setUpperBound(64);
 
 
 		yAxis.setForceZeroInRange(false);
@@ -422,7 +422,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 		if(!isDisabled()) {
 			updateRequest();
 			Platform.runLater(() -> {
-				xAxis.setLabel("Hz");
+				xAxis.setLabel("Freq");
 			});
 		}
 	}
@@ -460,7 +460,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
 			pool.invalidateAll();
 			series1.getData().clear();
 
-			for(int i=0;i<50;i++)
+			for(int i=0;i<128/2;i++)
 				series1.getData().add(new XYChart.Data<Number,Number>(i,-1));
 
 			current_x_pt  = current_x0_pt;
@@ -498,7 +498,7 @@ public class SpectrumChartWidget extends BorderPane implements IChartControl, IA
                             data[0] = 1.0f;
 
 
-						for(int i=0;i<50;i++)
+						for(int i=0;i<128/2;i++)
 							series1.getData().get(i).setYValue(data[i]);;
 
 
